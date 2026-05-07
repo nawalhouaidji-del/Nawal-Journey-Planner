@@ -114,7 +114,36 @@ public class Main {
                     if(startStation.equals(endStation)) {
                         System.out.println("You are already at your destination!");
                     } else{
+
+                        //Letting the user pick what type of journey they prefer(constraint)
+                        System.out.println("~Journey Type~");
+                        System.out.println("1.Shortest Time (may need to change lines)");
+                        System.out.println("2. Fewest changes");
+                        System.out.print("Please choose a journey type (1-2): ");
+
+                        int journeyType = -1;
+                        //Checking the user picks a valid input
+                        while(journeyType != 1 && journeyType !=2){
+
+                            journeyType = scanner.nextInt();
+                            scanner.nextLine();
+                            
+                            //Letting the user know their choice was invalid
+                            if (journeyType !=1 && journeyType!=2){
+                                System.out.println("Invalid choice. Please enter either 1 or 2.");
+                            }
+
+                        }
+
+                        //Performing the correct journey type based on the user's choice
+                        if(journeyType == 1){
                         findJourney(graph, startStation, endStation, stationSet);
+                        } else if (journeyType == 2){
+                            System.out.println("testing");
+                        //findfewestChangesJourney(graph, startStation, endStation, stationSet);
+                        } else{
+                            System.out.println("Invalid choice. ");
+                        }
                     }
 
                 } else if(choice == 3){

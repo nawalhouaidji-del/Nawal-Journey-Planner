@@ -123,6 +123,7 @@ public class Main {
                     break;
 
                 }else {
+                    //Invalid input validation check
                     System.out.println("Invalid choice. Please pick between (1-3)");
                 }
             }
@@ -139,76 +140,87 @@ public class Main {
         System.out.println("Looking for route from '" + start + "' to '" + end + "' ...");
 
         //BFS to find the shortest path
-        Queue<List<String>> queue = new LinkedList<>();
-        Set<String> visited = new HashSet<>();
-        Map<String,Double> travelTime = new HashMap<>();
+        Queue<PathNode> queue = new LinkedList<>();
+        Map<String,Double> bestTime = new HashMap<>();
 
-        List<String> startPath = new ArrayList<>();
-        startPath.add(start);
+        //Creating the inital path starting with the user's starting station
+        String startLine = getLineForStation(graph, start);
+        PathNode startPath = new PathNode(start, startLine);
         queue.add(startPath);
-        visited.add(start);
-        travelTime.put(start, 0.0);
+        bestTime.put(start, 0.0);
 
-        List<String> shortestPath = null;
-        double shortestTime = 0;
+        PathNode shortestPath = null; //Stores the final route
 
+        //Keep exploring paths until the queue is empty
         while(!queue.isEmpty()){
-            List<String> currentPath = queue.poll();
-            String currentStation = currentPath.get(currentPath.size()-1);
-            double currentTime = travelTime.get(currentStation);
+            PathNode currentPath = queue.poll();
+            String currentStation = currentPath.stations.get(currentPath.stations.size()-1);
+            double currentTime = currentPath.totalTime;
 
+            //If destination reached
             if (currentStation.equals(end)){
                 shortestPath = currentPath;
-                shortestTime = currentTime;
                 break;
             }
 
-            if (graph.containsKey(currentStation)){
-                for(Connection conn : graph.get(currentStation)){
-                    if(!visited.contains(conn.station)){
-                        visited.add(conn.station);
-                        List<String> newPath = new ArrayList<>(currentPath);
-                        newPath.add(conn.station);
-                        queue.add(newPath);
-                        travelTime.put(conn.station, currentTime + conn.time);
+            //Saving the path if the destination has been reached
+            if(graph.containsKey(currentStation)) {
+                for (Connection conn : graph.get(currentStation)) {
+                    String nextStation = conn.station;
+                    double travelTime = conn.time;
+                    String nextLine = conn.line;
+
+                    //Calculating total time + 2 min penalty if line changes
+                    double newTime = currentTime + travelTime;
+                    String currentLine = currentPath.lines.get(currentPath.lines.size()-1);
+
+                    //Adding 2-minute penalty
+                    if (!currentLine.equals(nextLine)){
+                        newTime += 2;
                     }
+
+                    //Only explore if its a better time to reach the next station
+                    if(!bestTime.containsKey(nextStation) || newTime < bestTime.get(nextStation)){
+                        bestTime.put(nextStation, newTime);
+
+                        //Creating new path from the current one
+                        PathNode newPath = new PathNode(currentPath);
+                        newPath.stations.add(nextStation);
+                        newPath.lines.add(nextLine);
+                        newPath.totalTime = newTime;
+                        queue.add(newPath);
+                    }
+
                 }
             }
         }
 
         //Displaying results
         if (shortestPath == null) {
-
+            //Telling the user BFS failed to find the route
             System.out.println("Sorry, no route found between '" + start + "' and '" + end +"'.");
         } else{
 
-            System.out.println("Journey Found!");
-            System.out.println("From: " +start);
-            System.out.println("To: " + end);
-            System.out.println("\nRoute:");
-
-            for (int i = 0; i< shortestPath.size() - 1; i++){
-                String from = shortestPath.get(i);
-                String to = shortestPath.get(i+1);
-
-                String lineName = "";
-                if (graph.containsKey(from)){
-                    for (Connection conn : graph.get(from)){
-                        if (conn.station.equals(to)){
-                            lineName = conn.line;
-                            break;
-                        }
-                    }
-                }
-                
-                System.out.println(" " + (i + 1) + ". " + from + " -> " + to + " (" + lineName + ")");
-
+            //Print each station followed by the which line its on
+            System.out.println();
+            for(int i = 0; i < shortestPath.stations.size(); i++){
+                String station = shortestPath.stations.get(i);
+                String line = shortestPath.lines.get(i);
+                System.out.println(station + " on " + line + " line");
             }
+
+            //Print Summary
+            System.out.println("\nOverall Journey time: " + shortestPath.totalTime);
 
         }
 
-        System.out.println("\nTotal travel time: " + shortestTime + " minutes");
-        System.out.println("Number of stops: " + (shortestPath.size()-1));
+    }        
+    public static String getLineForStation(Map<String, List<Connection>> graph, String station) {
+        if (graph.containsKey(station)){
+            //Return the line of the first connection
+            return graph.get(station).get(0).line;
+        }
+        return "unkown";
     }
 }
 
@@ -223,4 +235,28 @@ class Connection{
         this.time = time;
         this.line = line;
     }
+}
+
+//Storing a path with station names and which line each station is on.
+class PathNode{
+List<String> stations;
+List<String> lines;
+double totalTime; //Total travel time including penalties
+
+//Creating a new path starting with one station
+PathNode(String startStation, String startLine){
+    stations = new ArrayList<>();
+    lines = new ArrayList<>();
+    stations.add(startStation);
+    lines.add(startLine);
+    totalTime = 0;
+}
+
+//Creating a new path by copying an exisiting
+PathNode(PathNode other){
+    this.stations = new ArrayList<>(other.stations);
+    this.lines = new ArrayList<>(other.lines);
+    this.totalTime = other.totalTime;
+}
+
 }

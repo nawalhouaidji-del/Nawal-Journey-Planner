@@ -125,6 +125,12 @@ public class Main {
                 }else {
                     //Invalid input validation check
                     System.out.println("Invalid choice. Please pick between (1-3)");
+                    try{
+                        Thread.sleep(3000); //Time for the user to actually see the message
+                    } catch (InterruptedException e){
+                        Thread.currentThread().interrupt();
+                    }
+
                 }
             }
 
@@ -144,8 +150,8 @@ public class Main {
         Map<String,Double> bestTime = new HashMap<>();
 
         //Creating the inital path starting with the user's starting station
-        String startLine = getLineForStation(graph, start);
-        PathNode startPath = new PathNode(start, startLine);
+        PathNode startPath = new PathNode(start, "");
+
         queue.add(startPath);
         bestTime.put(start, 0.0);
 
@@ -174,6 +180,12 @@ public class Main {
                     double newTime = currentTime + travelTime;
                     String currentLine = currentPath.lines.get(currentPath.lines.size()-1);
 
+                    //Starting station will have the next line
+                    boolean isFirstMove = currentLine.isEmpty();
+                    if (isFirstMove){
+                        currentLine = nextLine;
+                    }
+
                     //Adding 2-minute penalty
                     if (!currentLine.equals(nextLine)){
                         newTime += 2;
@@ -188,6 +200,12 @@ public class Main {
                         newPath.stations.add(nextStation);
                         newPath.lines.add(nextLine);
                         newPath.totalTime = newTime;
+
+                        //Fix the start station's line if this the first move
+                        if (isFirstMove){
+                            newPath.lines.set(0, nextLine);
+                        }
+
                         queue.add(newPath);
                     }
 
@@ -215,13 +233,7 @@ public class Main {
         }
 
     }        
-    public static String getLineForStation(Map<String, List<Connection>> graph, String station) {
-        if (graph.containsKey(station)){
-            //Return the line of the first connection
-            return graph.get(station).get(0).line;
-        }
-        return "unkown";
-    }
+    
 }
 
 //Storing the information about a connection between two stations together

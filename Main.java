@@ -62,6 +62,43 @@ public class Main {
                     graph.computeIfAbsent(toStation, k -> new ArrayList<>()).add(new Connection(fromStation,travelTime, currentLine));
                 }
             }
+
+            //User interface Menu
+            System.out.println("\nData loaded successfully!");
+            System.out.println("Found " + stationSet.size() + " stations in the network. \n");
+
+            while(true){
+                System.out.println("\n ~MainMenu~");
+                System.out.println("1. List all stations");
+                System.out.println("2. Plan a journey");
+                System.out.println("3. Exit");
+                System.out.println("Enter you choice (1-3): ");
+
+                int choice = scanner.nextInt();
+                scanner.nextLine();
+                if (choice == 1){
+                    //Showing all stations
+                    System.out.println("\n~Station~");
+                    List<String> sortedStations = new ArrayList<>(stationSet);
+                    Collections.sort(sortedStations);
+                    for (String station : sortedStations){
+                        System.out.println("-" + station);
+                    }
+                    System.out.println("Total: " + sortedStations.size() +" stations");
+
+                } else if(choice == 2 ){
+                    //Planning a journey
+
+                } else if(choice == 3){
+                    //Exiting the service/program
+                    System.out.println("Thank you for using the Metrolink Planner. Goodbye!");
+                    break;
+
+                }else {
+                    System.out.println("Invalid choice. Please pick between (1-3)");
+                }
+            }
+
             scanner.close();
             
         } catch (IOException e){

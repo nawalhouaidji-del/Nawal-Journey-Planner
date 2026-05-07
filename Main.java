@@ -135,6 +135,77 @@ public class Main {
         System.out.println("Looking for route from '" + start + "' to '" + end + "' ....");
 
         //BFS to find the shortest path
+
+        Queue<List<String>> queue = new LinkedList<>();
+        Set<String> visited = new HashSet<>();
+        Map<String,Double> travelTime = new HashMap<>();
+
+        List<String> startPath = new ArrayList<>();
+        startPath.add(start);
+        queue.add(startPath);
+        visited.add(start);
+        travelTime.put(start, 0.0);
+
+        List<String> shortestPath = null;
+        double shortestTime = 0;
+
+        while(!queue.isEmpty()){
+            List<String> currentPath = queue.poll();
+            String currentStation = currentPath.get(currentPath.size()-1);
+            double currentTime = travelTime.get(currentStation);
+
+            if (currentStation.equals(end)){
+                shortestPath = currentPath;
+                shortestTime = currentTime;
+                break;
+            }
+
+            if (graph.containsKey(currentStation)){
+                for(Connection conn : graph.get(currentStation)){
+                    if(!visited.contains(conn.station)){
+                        visited.add(conn.station);
+                        List<String> newPath = new ArrayList<>(currentPath);
+                        newPath.add(conn.station);
+                        queue.add(newPath);
+                        travelTime.put(conn.station, currentTime + conn.time);
+                    }
+                }
+            }
+        }
+
+        //Displaying results
+        if (shortestPath == null) {
+
+            System.out.println("Sorry, no route found between '" + start + "' and '" + end +"'.");
+        } else{
+
+            System.out.println("Journey Found!");
+            System.out.println("From: " +start);
+            System.out.println("To: " + end);
+            System.out.println("\nRoute:");
+
+            for (int i = 0; i< shortestPath.size() - 1; i++){
+                String from = shortestPath.get(i);
+                String to = shortestPath.get(i+1);
+
+                String lineName = "";
+                if (graph.containsKey(from)){
+                    for (Connection conn : graph.get(from)){
+                        if (conn.station.equals(to)){
+                            lineName = conn.line;
+                            break;
+                        }
+                    }
+                }
+                
+                System.out.println(" " + (i + 1) + ". " + from + " -> " + to + " (" + lineName + ")");
+
+            }
+
+        }
+
+        System.out.println("\nTotal travel time: " + shortestTime + " minutes");
+        System.out.println("Number of stops: " + (shortestPath.size()-1));
     }
 }
 

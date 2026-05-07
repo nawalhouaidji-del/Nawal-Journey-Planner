@@ -88,6 +88,13 @@ public class Main {
 
                 } else if(choice == 2 ){
                     //Planning a journey
+                    System.out.println("~Plan a Journey~");
+                    System.out.println("Enter your starting station: ");
+                    String startStation = scanner.nextLine();
+                    System.out.println("Enter the destination station: ");
+                    String endStation = scanner.nextLine().trim();
+
+                    findJourney(graph, startStation, endStation, stationSet);
 
                 } else if(choice == 3){
                     //Exiting the service/program
@@ -104,6 +111,30 @@ public class Main {
         } catch (IOException e){
             System.out.println("Error reading file" + e.getMessage());
         }
+    }
+
+    public static void findJourney(Map<String, List<Connection>> graph, String start, String end, Set<String>stationSet){
+        //Checking if the start station exists
+        if(!stationSet.contains(start)){
+            System.out.println("Station '" + start + "'' not found.");
+            return;
+        }
+
+        //Checking if the end station exists
+        if(!stationSet.contains(end)){
+            System.out.println("Station '" + end + "' not found.");
+            return;
+        }
+
+        //Checking if the start and end are the same
+        if(start.equals(end)){
+            System.out.println("You are already at your destination!");
+            return;
+        }
+
+        System.out.println("Looking for route from '" + start + "' to '" + end + "' ....");
+
+        //BFS to find the shortest path
     }
 }
 

@@ -7,6 +7,13 @@ public class Main {
         String filename = "Metrolink_times_linecolour(in) (1).csv";
         Set<String> stationSet = new HashSet<> () ; //For storing station names
         List<String> connections = new ArrayList<>(); //For storing connections
+        Map<String, List<Connection>> graph = new HashMap<>(); //For storing the graph tructure
+
+        //Scanner for user input
+        Scanner scanner = new Scanner(System.in);
+
+        //User welcome interface
+        System.out.println("Welcome to the Metrolink Journey Planner");
 
         try{
             List<String> lines = Files.readAllLines(Paths.get(filename));
@@ -49,12 +56,29 @@ public class Main {
 
                     //Storing the connections as a readable string
                     connections.add(fromStation + "->" + toStation + " {" + travelTime +"mins) on" + currentLine);
-                }
 
+                    //Adding a connection in both directions
+                    graph.computeIfAbsent(fromStation, k -> new ArrayList<>()).add(new Connection(toStation, travelTime,currentLine));
+                    graph.computeIfAbsent(toStation, k -> new ArrayList<>()).add(new Connection(fromStation,travelTime, currentLine));
+                }
             }
+            scanner.close();
             
         } catch (IOException e){
             System.out.println("Error reading file" + e.getMessage());
         }
+    }
+}
+
+//Storing the information about a connection between two stations together
+class Connection{
+    String station;
+    Double time;
+    String line;
+
+    Connection(String station, double time, String line){
+        this.station = station;
+        this.time = time;
+        this.line = line;
     }
 }

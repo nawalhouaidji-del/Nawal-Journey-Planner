@@ -137,10 +137,9 @@ public class Main {
 
                         //Performing the correct journey type based on the user's choice
                         if(journeyType == 1){
-                        findJourney(graph, startStation, endStation, stationSet);
+                            findJourney(graph, startStation, endStation, stationSet);
                         } else if (journeyType == 2){
-                            System.out.println("testing");
-                        //findfewestChangesJourney(graph, startStation, endStation, stationSet);
+                            findFewestChangesJourney(graph, startStation.trim(), endStation.trim(), stationSet);
                         } else{
                             System.out.println("Invalid choice. ");
                         }
@@ -285,9 +284,90 @@ public class Main {
     }
 
     //Finding the route with the fewest line changes
-    public static void findfewestChangesJourney(Map<String, List<Connection>> graph, String start, String end, Set<String> stationSet){
+    public static void findFewestChangesJourney(Map<String, List<Connection>> graph, String start, String end, Set<String> stationSet){
 
-        System.out.println("Looking for route with fewest changes from ' " + start + "' to '" +end + "'...");
+        System.out.println("Looking for route with fewest changes from '" + start + "' to '" +end + "'...");
+
+        //Queue storing the paths
+        Queue<PathNode> queue = new LinkedList<>();
+        //Track visited stations
+        Set<String> visited = new HashSet<>();
+
+        //Creating inital path starting at the user's start station
+        PathNode startPath = new PathNode(start, "");
+        queue.add(startPath);
+        visited.add(start);
+
+        PathNode bestPath = null;
+        int fewestChanges =Integer.MAX_VALUE; //No best found yet so it'll start with infinity
+
+        //Keep exploring paths until the queue is empty
+        while(!queue.isEmpty()){
+            PathNode currentPath = queue.poll();
+            String currentStation = currentPath.stations.get(currentPath.stations.size()-1);
+
+            //Counting how many line changes have happened
+            int currentChanges = countChanges(currentPath.lines);
+
+            //Reached the final destination
+            if (currentStation.equals(end)){
+                //Check for fewer changes
+                if (currentChanges < fewestChanges){
+                    fewestChanges = currentChanges;
+                    bestPath = currentPath;
+                }
+
+                continue;
+            }
+
+            //Checking every possible connection from the current station
+            if (graph.containsKey(currentStation)){
+                for (Connection conn : graph.get(currentStation)){
+                    String nextStation = conn.station;
+                    String nextLine = conn.line;
+
+                    if (visited.contains(nextStation)){
+                        continue;
+                    }
+
+                    String currentLine = currentPath.lines.get(currentPath.lines.size()-1);
+
+                    //Calculating how many changes it would cause
+                    int newChanges = currentChanges;
+                    if(!currentLine.isEmpty() && !currentLine.equals(nextLine)){
+                        newChanges++;
+                    }
+                    currentChanges = newChanges;
+
+                    //Creates the new path from the current one and adds the next station
+                    PathNode newPath = new PathNode(currentPath);
+                    newPath.stations.add(nextStation);
+                    newPath.lines.add(nextLine);
+                    newPath.totalTime = currentPath.totalTime + conn.time;
+
+                    if (currentLine.isEmpty()){
+                        newPath.lines.set(0, nextLine);
+                    }
+
+                    queue.add(newPath);
+                    visited.add(nextStation);
+                    
+                }
+            }
+        }
+
+        //Results output
+        if(bestPath == null){
+            System.out.println("Sorry, no route found between '" + start + "' and '" + end + "'.");
+        } else{
+            System.out.println("Route with the fewest changes:");
+            for ( int i = 0; i < bestPath.stations.size(); i++){
+                System.out.println(bestPath.stations.get(i) + " on " + bestPath.lines.get(i) + " line");
+            }
+            System.out.println("Time: " + bestPath.totalTime);
+            System.out.println("Total Changes: " + fewestChanges);
+        }
+
     }
     
 }

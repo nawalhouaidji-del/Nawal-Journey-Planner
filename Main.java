@@ -6,7 +6,6 @@ public class Main {
     public static void main(String[] args){
         String filename = "Metrolink_times_linecolour(in) (1).csv";
         Set<String> stationSet = new HashSet<> () ; //For storing station names
-        List<String> connections = new ArrayList<>(); //For storing connections
         Map<String, List<Connection>> graph = new HashMap<>(); //For storing the graph tructure
 
         //Scanner for user input
@@ -37,7 +36,6 @@ public class Main {
 
                 if (isLineNameRow){
                     currentLine = firstPart;
-                    System.out.println("Now reading line " + currentLine);
                     continue;
                 }
 
@@ -53,9 +51,6 @@ public class Main {
                     //Adding station names to the set
                     stationSet.add(fromStation);
                     stationSet.add(toStation);
-
-                    //Storing the connections as a readable string
-                    connections.add(fromStation + "->" + toStation + " {" + travelTime +"mins) on" + currentLine);
 
                     //Adding a connection in both directions
                     graph.computeIfAbsent(fromStation, k -> new ArrayList<>()).add(new Connection(toStation, travelTime,currentLine));
@@ -366,14 +361,14 @@ public class Main {
             System.out.println("~Route with the fewest changes~");
             String previousLine = "";
             for ( int i = 0; i < bestPath.stations.size(); i++){
-                
+
                 //Getting the station name and its line colour from the stored path
                 String station = bestPath.stations.get(i);
                 String line = bestPath.lines.get(i);
 
                 //Print change indicator when line changes
                 if (!previousLine.isEmpty() && !previousLine.equals(line)){
-                    System.out.println("Change from " + previousLine + "to " + line + " line");
+                    System.out.println("Change from " + previousLine + " to " + line + " line");
                 }
                 
                 System.out.println(station + " on " + line + " line");

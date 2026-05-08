@@ -363,10 +363,25 @@ public class Main {
         if(bestPath == null){
             System.out.println("Sorry, no route found between '" + start + "' and '" + end + "'.");
         } else{
-            System.out.println("Route with the fewest changes:");
+            System.out.println("~Route with the fewest changes~");
+            String previousLine = "";
             for ( int i = 0; i < bestPath.stations.size(); i++){
-                System.out.println(bestPath.stations.get(i) + " on " + bestPath.lines.get(i) + " line");
+                
+                //Getting the station name and its line colour from the stored path
+                String station = bestPath.stations.get(i);
+                String line = bestPath.lines.get(i);
+
+                //Print change indicator when line changes
+                if (!previousLine.isEmpty() && !previousLine.equals(line)){
+                    System.out.println("Change from " + previousLine + "to " + line + " line");
+                }
+                
+                System.out.println(station + " on " + line + " line");
+                previousLine = line;
+
             }
+
+            //Showing total time and total line changes
             System.out.println("Time: " + bestPath.totalTime);
             System.out.println("Total Changes: " + fewestChanges);
         }

@@ -1,6 +1,7 @@
 import java.util.*;
 import java.io.*;
 import java.nio.file.*;
+import java.util.PriorityQueue;
 
 public class Main {
     public static void main(String[] args){
@@ -284,18 +285,18 @@ public class Main {
         System.out.println("Looking for route with fewest changes from '" + start + "' to '" +end + "'...");
 
         //PriorityQueue that will order paths by fewest changes first
-        Queue<PathNode> queue = new LinkedList<>();
+        PriorityQueue<PathNode> queue = new PriorityQueue<>(Comparator.comparingInt(p-> countChanges(p.lines)));
 
         //Storing the fewest line changes found to reach each station
-        Map<String, Integer> bestChangesToStation = new HashMap<>();
+        Map<String, Integer> minChangesToStation = new HashMap<>();
 
         //Creating inital path starting at the user's start station
         PathNode startPath = new PathNode(start, "");
         queue.add(startPath);
-        bestChangesToStation.put(start, 0);
+        minChangesToStation.put(start, 0);
 
         PathNode bestPath = null;
-        int fewestChanges =Integer.MAX_VALUE; //No best found yet so it'll start with infinity
+        int bestChanges =Integer.MAX_VALUE; //No best found yet so it'll start with infinity
 
         //Keep exploring paths until the queue is empty
         while(!queue.isEmpty()){
@@ -305,17 +306,20 @@ public class Main {
             //Counting how many line changes have happened
             int currentChanges = countChanges(currentPath.lines);
 
-            if(currentChanges >= fewestChanges){
+            //Skips the path if it's already longer than the best found
+            if(currentChanges >= bestChanges){
                 continue;
             }
 
             //Reached the final destination
             if (currentStation.equals(end)){
+                
                 //Check for fewer changes
-                if (currentChanges < fewestChanges){
-                    fewestChanges = currentChanges;
+                if (currentChanges < bestChanges){
+                    bestChanges = currentChanges;
                     bestPath = currentPath;
                 }
+                continue;
             }
 
             //Checking every possible connection from the current station
@@ -323,8 +327,6 @@ public class Main {
                 for (Connection conn : graph.get(currentStation)){
                     String nextStation = conn.station;
                     String nextLine = conn.line;
-
-
                     String currentLine = currentPath.lines.get(currentPath.lines.size()-1);
 
                     //Calculating how many changes it would cause
@@ -333,7 +335,7 @@ public class Main {
                         newChanges++;
                     }
 
-                    if (bestChangesToStation.containsKey(nextStation) && newChanges>= bestChangesToStation.get(nextStation)){
+                    if (minChangesToStation.containsKey(nextStation) && newChanges>= minChangesToStation.get(nextStation)){
                         continue;
                     }
 
@@ -341,15 +343,30 @@ public class Main {
                     PathNode newPath = new PathNode(currentPath);
                     newPath.stations.add(nextStation);
                     newPath.lines.add(nextLine);
-                    newPath.totalTime = currentPath.totalTime + conn.time;
 
+                    //Setting the first station's line if needed
                     if (currentLine.isEmpty()){
                         newPath.lines.set(0, nextLine);
                     }
 
-                    bestChangesToStation.put(nextStation, newChanges);
+                    minChangesToStation.put(nextStation, newChanges);
                     queue.add(newPath);
                     
+                }
+            }
+        }
+
+        //Calculate time for the best path
+        double actualTime = 0;
+        if (bestPath != null){
+            for(int i = 0; i <bestPath.stations.size() - 1; i++){
+                String from = bestPath.stations.get(i);
+                String to = bestPath.stations.get(i+1);
+                for (Connection conn : graph.get(from)){
+                    if (conn.station.equals(to)){
+                        actualTime+= conn.time;
+                        break;
+                    }
                 }
             }
         }
@@ -358,27 +375,18 @@ public class Main {
         if(bestPath == null){
             System.out.println("Sorry, no route found between '" + start + "' and '" + end + "'.");
         } else{
-            System.out.println("~Route with the fewest changes~");
-            String previousLine = "";
-            for ( int i = 0; i < bestPath.stations.size(); i++){
 
+            System.out.println("~Route with the fewest changes~");
+            for (int i = 0; i <bestPath.stations.size(); i++){
                 //Getting the station name and its line colour from the stored path
                 String station = bestPath.stations.get(i);
                 String line = bestPath.lines.get(i);
-
-                //Print change indicator when line changes
-                if (!previousLine.isEmpty() && !previousLine.equals(line)){
-                    System.out.println("Change from " + previousLine + " to " + line + " line");
-                }
-                
-                System.out.println(station + " on " + line + " line");
-                previousLine = line;
-
+                System.out.println(station + " on " + line + " line.");
             }
 
             //Showing total time and total line changes
-            System.out.println("Time: " + bestPath.totalTime);
-            System.out.println("Total Changes: " + fewestChanges);
+            System.out.println("Time: " + actualTime);
+            System.out.println("Total Changes: " + bestChanges);
         }
 
     }

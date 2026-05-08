@@ -288,15 +288,16 @@ public class Main {
 
         System.out.println("Looking for route with fewest changes from '" + start + "' to '" +end + "'...");
 
-        //Queue storing the paths
+        //PriorityQueue that will order paths by fewest changes first
         Queue<PathNode> queue = new LinkedList<>();
-        //Track visited stations
-        Set<String> visited = new HashSet<>();
+
+        //Storing the fewest line changes found to reach each station
+        Map<String, Integer> bestChangesToStation = new HashMap<>();
 
         //Creating inital path starting at the user's start station
         PathNode startPath = new PathNode(start, "");
         queue.add(startPath);
-        visited.add(start);
+        bestChangesToStation.put(start, 0);
 
         PathNode bestPath = null;
         int fewestChanges =Integer.MAX_VALUE; //No best found yet so it'll start with infinity
@@ -309,6 +310,10 @@ public class Main {
             //Counting how many line changes have happened
             int currentChanges = countChanges(currentPath.lines);
 
+            if(currentChanges >= fewestChanges){
+                continue;
+            }
+
             //Reached the final destination
             if (currentStation.equals(end)){
                 //Check for fewer changes
@@ -316,8 +321,6 @@ public class Main {
                     fewestChanges = currentChanges;
                     bestPath = currentPath;
                 }
-
-                continue;
             }
 
             //Checking every possible connection from the current station
@@ -326,9 +329,6 @@ public class Main {
                     String nextStation = conn.station;
                     String nextLine = conn.line;
 
-                    if (visited.contains(nextStation)){
-                        continue;
-                    }
 
                     String currentLine = currentPath.lines.get(currentPath.lines.size()-1);
 
@@ -337,7 +337,10 @@ public class Main {
                     if(!currentLine.isEmpty() && !currentLine.equals(nextLine)){
                         newChanges++;
                     }
-                    currentChanges = newChanges;
+
+                    if (bestChangesToStation.containsKey(nextStation) && newChanges>= bestChangesToStation.get(nextStation)){
+                        continue;
+                    }
 
                     //Creates the new path from the current one and adds the next station
                     PathNode newPath = new PathNode(currentPath);
@@ -349,8 +352,8 @@ public class Main {
                         newPath.lines.set(0, nextLine);
                     }
 
+                    bestChangesToStation.put(nextStation, newChanges);
                     queue.add(newPath);
-                    visited.add(nextStation);
                     
                 }
             }

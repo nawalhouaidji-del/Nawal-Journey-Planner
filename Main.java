@@ -261,7 +261,34 @@ public class Main {
 
         }
 
-    }        
+    } 
+    
+    //Method to count how many times the line changes
+    public static int countChanges(List<String> lines){
+        //An empty journey/ single station requires no changes
+        if (lines == null || lines.size() <=1 ){
+            return 0;
+        }
+
+        int changes = 0;
+        String currentLine = lines.get(0); // Starting with the first station's line
+
+        //Scanning through the rest of the journey one station at a time
+        for (int i = 1; i <lines.size(); i++){
+            //Finds line changes
+            if (!currentLine.equals(lines.get(i))){
+                changes++;
+                currentLine = lines.get(i);
+            }
+        }
+        return changes;
+    }
+
+    //Finding the route with the fewest line changes
+    public static void findfewestChangesJourney(Map<String, List<Connection>> graph, String start, String end, Set<String> stationSet){
+
+        System.out.println("Looking for route with fewest changes from ' " + start + "' to '" +end + "'...");
+    }
     
 }
 
